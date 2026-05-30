@@ -1,24 +1,50 @@
-stage('Deploy') {
-    steps {
-        bat '''
-        scp -o StrictHostKeyChecking=no ^
-        -i C:\\keys\\Jenkins-Testing.pem ^
-        target\\Jenkins-Test-0.0.1-SNAPSHOT.jar ^
-        ubuntu@3.7.252.55:/home/ubuntu/app.jar
-        '''
+pipeline {
+    agent any
 
-        bat '''
-        ssh -o StrictHostKeyChecking=no ^
-        -i C:\\keys\\Jenkins-Testing.pem ^
-        ubuntu@3.7.252.55 ^
-        "pkill -f app.jar || true"
-        '''
+    tools {
+        maven 'Maven'
+        jdk 'JDK17'
+    }
 
-        bat '''
-        ssh -o StrictHostKeyChecking=no ^
-        -i C:\\keys\\Jenkins-Testing.pem ^
-        ubuntu@3.7.252.55 ^
-        "nohup java -jar /home/ubuntu/app.jar > app.log 2>&1 &"
-        '''
+    stages {
+
+        stage('Checkout') {
+            steps {
+                checkout scm
+            }
+        }
+
+        stage('Build') {
+            steps {
+                bat 'mvn clean package -DskipTests'
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+
+                bat '''
+                scp -o StrictHostKeyChecking=no -i C:\\keys\\Jenkins-Testing.pem target\\Jenkins-Test-0.0.1-SNAPSHOT.jar ubuntu@3.7.252.55:/home/ubuntu/app.jar
+                '''
+
+                bat '''
+                ssh -o StrictHostKeyChecking=no -i C:\\keys\\Jenkins-Testing.pem ubuntu@3.7.252.55 "pkill -f app.jar"
+                '''
+
+                bat '''
+                ssh -o StrictHostKeyChecking=no -i C:\\keys\\Jenkins-Testing.pem ubuntu@3.7.252.55 "nohup java -jar /home/ubuntu/app.jar > app.log 2>&1 &"
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'Application deployed successfully!'
+        }
+
+        failure {
+            echo 'Pipeline failed!'
+        }
     }
 }
