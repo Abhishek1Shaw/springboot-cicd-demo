@@ -14,6 +14,16 @@ stages {
             bat 'mvn clean package -DskipTests'
         }
     }
+    stage('SSH Test') {
+    steps {
+        bat '''
+        ssh -o StrictHostKeyChecking=no ^
+        -i C:\\ProgramData\\Jenkins\\.jenkins\\Jenkins-Testing.pem ^
+        ubuntu@3.7.252.55 ^
+        "echo CONNECTED"
+        '''
+    }
+}
 
     stage('Deploy') {
     steps {
