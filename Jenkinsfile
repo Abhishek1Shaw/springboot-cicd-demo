@@ -20,7 +20,7 @@ stages {
 
             withCredentials([
                 sshUserPrivateKey(
-                    credentialsId: 'ec2-key',
+                    credentialsId: 'aws-ec2-key',
                     keyFileVariable: 'SSH_KEY'
                 )
             ]) {
