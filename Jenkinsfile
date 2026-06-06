@@ -16,38 +16,30 @@ stages {
     }
 
     stage('Deploy') {
-        steps {
+    steps {
 
-            withCredentials([
-                sshUserPrivateKey(
-                    credentialsId: 'aws-ec2-key',
-                    keyFileVariable: 'SSH_KEY'
-                )
-            ]) {
+        bat '''
+        scp -o StrictHostKeyChecking=no ^
+        -i C:\\keys\\Jenkins-Testing.pem ^
+        target\\Jenkins-Test-0.0.1-SNAPSHOT.jar ^
+        ubuntu@3.7.252.55:/home/ubuntu/app.jar
+        '''
 
-                bat '''
-                scp -o StrictHostKeyChecking=no ^
-                -i "%SSH_KEY%" ^
-                target\\Jenkins-Test-0.0.1-SNAPSHOT.jar ^
-                ubuntu@3.7.252.55:/home/ubuntu/app.jar
-                '''
+        bat '''
+        ssh -o StrictHostKeyChecking=no ^
+        -i C:\\keys\\Jenkins-Testing.pem ^
+        ubuntu@3.7.252.55 ^
+        "pkill -f app.jar || true"
+        '''
 
-                bat '''
-                ssh -o StrictHostKeyChecking=no ^
-                -i "%SSH_KEY%" ^
-                ubuntu@3.7.252.55 ^
-                "pkill -f app.jar || true"
-                '''
-
-                bat '''
-                ssh -o StrictHostKeyChecking=no ^
-                -i "%SSH_KEY%" ^
-                ubuntu@3.7.252.55 ^
-                "nohup java -jar /home/ubuntu/app.jar > app.log 2>&1 &"
-                '''
-            }
-        }
+        bat '''
+        ssh -o StrictHostKeyChecking=no ^
+        -i C:\\keys\\Jenkins-Testing.pem ^
+        ubuntu@3.7.252.55 ^
+        "nohup java -jar /home/ubuntu/app.jar > app.log 2>&1 &"
+        '''
     }
+}
 }
 
 post {
